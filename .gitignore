@@ -1,0 +1,16 @@
+# Environnements virtuels
+venv/
+.venv/
+env/
+
+# Cache Python
+__pycache__/
+*.pyc
+
+# Notebooks (on n'en utilise pas, mais au cas où)
+.ipynb_checkpoints/
+
+# Fichiers système / éditeur
+.DS_Store
+Thumbs.db
+.vscode/
