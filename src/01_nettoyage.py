@@ -207,11 +207,10 @@ for col in ["part_emporter", "habitants_1km"]:
 # Contrôle : plus aucune valeur manquante dans le fichier boutiques.
 assert boutiques.isna().sum().sum() == 0
 
-# ---------------------------------------------------------------------------
 # 8. CA de la fiche vs moyenne réelle des ventes 2024
 # La fiche boutique donne un CA mensuel ; le fichier de ventes permet de le
 # recalculer. On compare les deux pour toutes les boutiques.
-# ---------------------------------------------------------------------------
+
 titre("8. Cohérence du CA : fiche boutique vs ventes 2024")
 agg = (ventes.groupby("boutique_id")
        .agg(ca_moyen_2024=("ca_mensuel_eur", "mean"),
@@ -239,11 +238,10 @@ boutiques = boutiques.merge(agg[["boutique_id", "ca_moyen_2024", "tickets_moyen_
 boutiques["ca_fiche_arrondi"] = boutiques["boutique_id"].isin(["B120", "B154"])
 comparaison.round(4).to_csv(TABLES / "ecarts_ca.csv", index=False)
 
-# ---------------------------------------------------------------------------
 # 9. Plausibilité des unités
-# On affiche min / médiane / max et on calcule quelques ratios métier
+# On affiche min / médiane / max et on calcule quelques ratios métier 
 # pour juger si chaque colonne est dans l'unité annoncée par son nom.
-# ---------------------------------------------------------------------------
+
 titre("9. Plausibilité des unités")
 num = boutiques.select_dtypes("number").drop(columns=["longitude", "latitude"])
 print(num.describe().T[["min", "50%", "max"]].round(2).to_string())
@@ -260,14 +258,12 @@ print(f"Boutiques ouvertes depuis < 24 mois : {(boutiques['anciennete_mois'] < 2
       "(le sujet en annonce 18)")
 print("Commentaires dans docs/journal_nettoyage.md, section 9.")
 
-# Contrôle des coordonnées : toutes les boutiques doivent être dans Paris
-# (environ 2,22-2,47 E et 48,81-48,91 N).
+# Contrôle des coordonnées : toutes les boutiques doivent être dans Paris (environ 2,22-2,47 E et 48,81-48,91 N).
 assert boutiques["longitude"].between(2.22, 2.47).all()
 assert boutiques["latitude"].between(48.81, 48.91).all()
 
-# ---------------------------------------------------------------------------
+
 # 10. Sauvegarde et tableau qualité avant / après
-# ---------------------------------------------------------------------------
 titre("10. Sauvegarde")
 boutiques.to_csv(CLEAN / "boutiques_clean.csv", index=False, encoding="utf-8")
 ventes.to_csv(CLEAN / "ventes_clean.csv", index=False, encoding="utf-8")
@@ -278,6 +274,7 @@ qualite = pd.concat([
     profil(ventes_brut, "avant").assign(fichier="ventes"),
     profil(ventes, "apres").assign(fichier="ventes"),
 ], ignore_index=True)
+
 # On met fichier / colonne / étape en premier et on trie pour lire avant et après côte à côte.
 colonnes = ["fichier", "colonne", "etape"] + [c for c in qualite.columns if c not in ("fichier", "colonne", "etape")]
 qualite = qualite[colonnes].sort_values(["fichier", "colonne", "etape"], ascending=[True, True, False])
