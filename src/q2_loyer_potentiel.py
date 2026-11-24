@@ -15,7 +15,6 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
 
 RACINE = Path(__file__).resolve().parent.parent
 FIGURES = RACINE / "outputs" / "figures"
@@ -128,22 +127,19 @@ def regression(df, variables, nom):
     X = df[variables]
     y = df[CIBLE]
 
-    # Modèle sur toutes les boutiques : sert à lire les coefficients et le R².
+    # Modèle sur toutes les boutiques : sert à lire les coefficients, le R² et la RMSE.
     modele = LinearRegression().fit(X, y)
     prediction = modele.predict(X)
 
-    # Évaluation honnête : on apprend sur 70 % et on mesure l'erreur sur les 30 % jamais vus.
-    # Le "modèle moyenne" prédit toujours le CA moyen du train : il faut faire mieux que lui.
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    modele_train = LinearRegression().fit(X_train, y_train)
-    rmse_test = np.sqrt(mean_squared_error(y_test, modele_train.predict(X_test)))
-    rmse_moyenne = np.sqrt(mean_squared_error(y_test, np.full(len(y_test), y_train.mean())))
+    # Le "modèle moyenne" prédit toujours le CA moyen : la régression doit se tromper moins que lui.
+    # Ici on décrit le lien sur les 59 boutiques ; l'évaluation sur des boutiques
+    # non vues (train_test_split) est faite en Q4, où on cherche vraiment à prédire.
+    rmse_moyenne = np.sqrt(mean_squared_error(y, np.full(len(y), y.mean())))
 
     ligne = {"modele": nom, "n": len(df),
              "R2": r2_score(y, prediction),
              "RMSE": np.sqrt(mean_squared_error(y, prediction)),
-             "RMSE_test": rmse_test,
-             "RMSE_test_modele_moyenne": rmse_moyenne}
+             "RMSE_modele_moyenne": rmse_moyenne}
     for var, coef in zip(variables, modele.coef_):
         ligne[f"coef_{var}"] = coef
     return ligne, modele
@@ -174,9 +170,8 @@ for variables, nom in modeles:
     lignes.append(ligne)
     if nom == "loyer seul":
         modele_loyer = modele  # gardé pour le nuage des résidus
-    print(f"{nom:<16} R² = {ligne['R2']:.2f} | RMSE = {euros(ligne['RMSE'])} € | "
-          f"RMSE test = {euros(ligne['RMSE_test'])} € vs modèle moyenne "
-          f"{euros(ligne['RMSE_test_modele_moyenne'])} €")
+    print(f"{nom:<16} R² = {ligne['R2']:.2f} | RMSE = {euros(ligne['RMSE'])} € "
+          f"vs modèle moyenne {euros(ligne['RMSE_modele_moyenne'])} €")
     print(f"{'':<16} {phrase(ligne)}")
 
 # Cours Régression linéaire : un coefficient n'a de sens qu'en présence des autres variables.

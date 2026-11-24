@@ -1,10 +1,10 @@
-modele,n,R2,RMSE,RMSE_test,RMSE_test_modele_moyenne,coef_loyer_mensuel_eur,coef_surface_m2,coef_passage_pietons_jour
-loyer seul,59,0.1822,5317.4848,6761.4526,7562.9608,1.3076,,
-surface seule,59,0.124,5503.3452,7053.0637,7562.9608,,92.6746,
-passage seul,59,0.6675,3390.3303,4042.648,7562.9608,,,1.2531
-loyer + surface,59,0.1894,5294.0387,6708.3725,7562.9608,1.0671,30.416,
-loyer + passage,59,0.6814,3319.1518,3985.0534,7562.9608,0.391,,1.1768
-loyer seul (sans gares),54,0.1288,3888.7366,4761.2116,5180.4298,0.7798,,
-passage seul (sans gares),54,0.3772,3287.8277,3834.3499,5180.4298,,,1.0211
-loyer seul (sans surfaces imputées),56,0.1832,5429.2585,7836.8201,8641.2648,1.3412,,
-passage seul (sans surfaces imputées),56,0.6752,3423.8241,3985.0529,8641.2648,,,1.2662
+modele,n,R2,RMSE,RMSE_modele_moyenne,coef_loyer_mensuel_eur,coef_surface_m2,coef_passage_pietons_jour
+loyer seul,59,0.1822,5317.4848,5879.9748,1.3076,,
+surface seule,59,0.124,5503.3452,5879.9748,,92.6746,
+passage seul,59,0.6675,3390.3303,5879.9748,,,1.2531
+loyer + surface,59,0.1894,5294.0387,5879.9748,1.0671,30.416,
+loyer + passage,59,0.6814,3319.1518,5879.9748,0.391,,1.1768
+loyer seul (sans gares),54,0.1288,3888.7366,4166.2222,0.7798,,
+passage seul (sans gares),54,0.3772,3287.8277,4166.2222,,,1.0211
+loyer seul (sans surfaces imputées),56,0.1832,5429.2585,6007.1964,1.3412,,
+passage seul (sans surfaces imputées),56,0.6752,3423.8241,6007.1964,,,1.2662
