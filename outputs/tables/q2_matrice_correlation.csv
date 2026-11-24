@@ -1,0 +1,7 @@
+,loyer_mensuel_eur,loyer_m2,surface_m2,passage_pietons_jour,concurrents_300m,ca_moyen_2024
+loyer_mensuel_eur,1.0,0.63,0.68,0.39,0.23,0.43
+loyer_m2,0.63,1.0,-0.12,0.36,-0.02,0.24
+surface_m2,0.68,-0.12,1.0,0.17,0.26,0.35
+passage_pietons_jour,0.39,0.36,0.17,1.0,0.07,0.82
+concurrents_300m,0.23,-0.02,0.26,0.07,1.0,-0.22
+ca_moyen_2024,0.43,0.24,0.35,0.82,-0.22,1.0
