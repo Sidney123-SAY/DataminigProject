@@ -1,0 +1,19 @@
+echantillon,indicateur,controle,n,pearson_r,pearson_p,spearman_rho,spearman_p,r2
+toutes,loyer_mensuel_eur,,59,0.4268,0.0007,0.4214,0.0009,0.1822
+toutes,surface_m2,,59,0.3521,0.0062,0.4374,0.0005,0.124
+toutes,loyer_m2,,59,0.2376,0.07,0.1022,0.4413,0.0565
+toutes,loyer_mensuel_eur,surface_m2,59,0.2732,0.038,0.2047,0.1233,0.0746
+sans surfaces imputées,loyer_m2,,56,0.2342,0.0823,0.0949,0.4864,0.0549
+toutes,passage_pietons_jour,,59,0.817,0.0,0.6167,0.0,0.6675
+toutes,loyer_mensuel_eur,passage_pietons_jour,59,0.2038,0.1249,0.2824,0.0317,0.0415
+toutes,passage_pietons_jour,loyer_mensuel_eur,59,0.7813,0.0,0.5537,0.0,0.6104
+sans gares,loyer_mensuel_eur,,54,0.3588,0.0077,0.3441,0.0108,0.1288
+sans gares,passage_pietons_jour,,54,0.6142,0.0,0.5008,0.0001,0.3772
+gare,loyer_mensuel_eur,,5,0.2808,0.6472,0.4617,0.4338,0.0788
+gare,passage_pietons_jour,,5,0.4205,0.4808,0.7,0.1881,0.1768
+centre commercial,loyer_mensuel_eur,,11,0.4004,0.2223,0.4182,0.2006,0.1603
+centre commercial,passage_pietons_jour,,11,0.8539,0.0008,0.8091,0.0026,0.7292
+rue passante,loyer_mensuel_eur,,27,0.4993,0.008,0.4982,0.0082,0.2493
+rue passante,passage_pietons_jour,,27,0.6083,0.0008,0.41,0.0337,0.37
+quartier résidentiel,loyer_mensuel_eur,,16,-0.0553,0.8389,-0.15,0.5792,0.0031
+quartier résidentiel,passage_pietons_jour,,16,0.4504,0.08,0.4618,0.0718,0.2028
