@@ -20,6 +20,7 @@ Les fichiers bruts de `data/raw/` ne sont jamais modifiés ; tout est réécrit 
 | 9 bis | Choix de la variable de CA à analyser. | **Nouvelle colonne `ca_moyen_2024`**, la moyenne des 12 mois de ventes. **C'est la cible à utiliser dans toutes les questions.** La colonne d'origine `ca_mensuel_eur` est conservée. | Elle est calculée de la même manière pour toutes les boutiques, sans arrondi saisi à la main. |
 | 10 | Le sujet parle de **18 boutiques ouvertes depuis moins de deux ans**, alors que le fichier n'en compte que **3** avec une ancienneté < 24 mois (B139 : 10, B123 : 19, B149 : 21). | **Signalé, non corrigé.** | Aucun changement d'unité simple ne retombe sur 18 (il faudrait un seuil vers 44 mois). On ignore aussi la date de référence de l'ancienneté. L'équipe de la Q1 doit en tenir compte. |
 | 11 | B139 a 10 mois d'ancienneté, mais un CA normal dès janvier 2024. | **Signalé.** | C'est cohérent seulement si l'ancienneté a été mesurée vers novembre 2024. Cela confirme que sa date de référence est inconnue. |
+| 12 | Les boîtes à moustaches font ressortir des valeurs extrêmes, surtout les 5 gares (passage de 11 000 à 19 000 par jour, CA au-dessus de 30 000 €). | **Gardées.** Voir `outputs/figures/nettoyage_boxplots.png`. | Ce sont de vraies boutiques avec un vrai emplacement : une valeur extrême est une question, pas un déchet (cours Analyse exploratoire). Les analyses vérifient le résultat avec et sans elles. |
 
 ## Section 9 — Plausibilité des unités
 
@@ -52,3 +53,4 @@ Valeurs calculées sur les 59 boutiques après nettoyage :
 - `data/clean/ventes_clean.csv` : 708 lignes, soit 59 boutiques × 12 mois, sans doublon (boutique, mois).
 - `outputs/tables/qualite_donnees.csv` : profil avant / après de chaque colonne (lignes, manquants, zéros, négatifs, min, médiane, max).
 - `outputs/tables/ecarts_ca.csv` : CA de la fiche vs moyenne des ventes 2024, par boutique.
+- `outputs/figures/nettoyage_boxplots.png` : une boîte à moustaches par colonne numérique, après nettoyage.

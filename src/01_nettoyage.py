@@ -1,37 +1,35 @@
 """
 Étape 1 — Nettoyage des données Maison Delorme.
 
-Lancer depuis la racine du projet :
-    python src/01_nettoyage.py
-
-Entrées (jamais modifiées) :
     data/raw/Delorme_boutiques.csv
     data/raw/Delorme_ventes_mensuelles.csv
+
 Sorties :
     data/clean/boutiques_clean.csv
     data/clean/ventes_clean.csv
     outputs/tables/qualite_donnees.csv   (profil avant / après, par colonne)
     outputs/tables/ecarts_ca.csv         (CA de la fiche vs moyenne des ventes 2024)
+    outputs/figures/nettoyage_boxplots.png (boîtes à moustaches après nettoyage)
 
-Chaque décision prise ici est écrite en une phrase dans docs/journal_nettoyage.md.
 """
 
 from pathlib import Path
 
+import matplotlib
+matplotlib.use("Agg")  # pas de fenêtre, on écrit directement le PNG
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-# ---------------------------------------------------------------------------
-# 0. Chemins
-# On part de l'emplacement du script pour que les chemins marchent
-# quel que soit le dossier d'où on lance la commande.
-# ---------------------------------------------------------------------------
+
 RACINE = Path(__file__).resolve().parent.parent
 RAW = RACINE / "data" / "raw"
 CLEAN = RACINE / "data" / "clean"
 TABLES = RACINE / "outputs" / "tables"
+FIGURES = RACINE / "outputs" / "figures"
 CLEAN.mkdir(parents=True, exist_ok=True)
 TABLES.mkdir(parents=True, exist_ok=True)
+FIGURES.mkdir(parents=True, exist_ok=True)
 
 # Boutiques dont tout le CA vaut -1 (fiche) et 1 € / 0 ticket (ventes) :
 # ce sont des valeurs de remplissage, pas des ventes réelles.
@@ -65,11 +63,7 @@ def profil(df, etape):
     return pd.DataFrame(lignes)
 
 
-# ---------------------------------------------------------------------------
-# 1. Lecture
-# Les fichiers sont en UTF-8 ("résidentiel" est bien codé). On le précise
-# pour ne pas dépendre de l'encodage par défaut de Windows.
-# ---------------------------------------------------------------------------
+
 boutiques_brut = pd.read_csv(RAW / "Delorme_boutiques.csv", encoding="utf-8")
 ventes_brut = pd.read_csv(RAW / "Delorme_ventes_mensuelles.csv", encoding="utf-8")
 
@@ -84,20 +78,19 @@ print(f"ventes    : {ventes_brut.shape[0]} lignes, "
 boutiques = boutiques_brut.copy()
 ventes = ventes_brut.copy()
 
-# ---------------------------------------------------------------------------
-# 2. Couverture temporelle des ventes
+
 # Le sujet annonce "deux ans" de ventes : on vérifie ce qu'il y a vraiment.
-# ---------------------------------------------------------------------------
+
 titre("2. Période couverte par les ventes")
 mois = sorted(ventes["mois"].unique())
 print(f"{len(mois)} mois distincts, de {mois[0]} à {mois[-1]}")
 print("-> Le fichier ne couvre que 12 mois (2024), pas deux ans comme annoncé.")
 
-# ---------------------------------------------------------------------------
-# 3. Doublons dans boutiques.csv
+
+# Doublons dans boutiques.csv
 # On regarde d'abord les identifiants répétés, puis si les lignes sont
 # strictement identiques. Si oui, supprimer la copie ne perd aucune info.
-# ---------------------------------------------------------------------------
+
 titre("3. Doublons dans boutiques.csv")
 ids_doubles = boutiques.loc[boutiques["boutique_id"].duplicated(), "boutique_id"].tolist()
 print("Identifiants en double :", ids_doubles)
@@ -108,15 +101,15 @@ boutiques = boutiques.drop_duplicates().reset_index(drop=True)
 assert boutiques["boutique_id"].is_unique, "Il reste des doublons non identiques !"
 print(f"-> {n_exacts} lignes supprimées, {len(boutiques)} boutiques restantes.")
 
-# ---------------------------------------------------------------------------
-# 4. Doublons dans ventes_mensuelles.csv
+
+# Doublons dans ventes_mensuelles.csv
 # Deux cas différents :
-#   - B121 : sa série de 12 mois est recopiée à l'identique -> on supprime ;
+#   - B121 : sa série de 12 mois est recopiée à l'identique on supprime ;
 #   - B152 : deux séries de 12 mois DIFFÉRENTES pour les mêmes mois.
 # Pour B152 on ne peut pas garder les deux (24 mois "2024" n'ont pas de sens).
 # Règle choisie : garder la série dont la moyenne est la plus proche du CA
 # de la fiche boutique, qui sert de référence indépendante.
-# ---------------------------------------------------------------------------
+
 titre("4. Doublons dans ventes_mensuelles.csv")
 n_exacts_v = ventes.duplicated().sum()
 print(f"Lignes strictement identiques : {n_exacts_v} "
@@ -151,12 +144,11 @@ ventes = ventes.drop(columns="serie").reset_index(drop=True)
 assert not ventes.duplicated(cle).any()
 print(f"\n-> {len(ventes)} lignes de ventes restantes.")
 
-# ---------------------------------------------------------------------------
-# 5. Boutiques "fantômes" : B101, B105, B121
-# CA = -1 dans la fiche (impossible) et 1 € / 0 ticket tous les mois dans les
-# ventes : c'est un code de remplissage, pas une activité. Les garder fausserait
-# toutes les moyennes et corrélations -> on les écarte des deux fichiers.
-# ---------------------------------------------------------------------------
+
+# Boutiques "fantômes" B101, B105, B121 : CA = -1 dans la fiche et 1 € / 0 ticket
+# tous les mois. C'est un code de remplissage, pas une activité : les garder
+# fausserait toutes les moyennes et corrélations, on les écarte des deux fichiers.
+
 titre("5. Boutiques sans activité réelle")
 print(boutiques.loc[boutiques["ca_mensuel_eur"] < 0, ["boutique_id", "ca_mensuel_eur", "anciennete_mois"]].to_string(index=False))
 resume_v = (ventes[ventes["boutique_id"].isin(BOUTIQUES_FANTOMES)]
@@ -172,14 +164,12 @@ print(f"-> Écartées. Il reste {len(boutiques)} boutiques et {len(ventes)} lign
 print("   Leur ancienneté (36 à 136 mois) montre que ce ne sont PAS les 3 nouvelles "
       "boutiques en difficulté de la question 1.")
 
-# ---------------------------------------------------------------------------
-# 6. Surface = 0 m² (B129, B113, B159)
-# Une boulangerie de 0 m² n'existe pas : c'est une valeur manquante déguisée.
-# On la remplace par la médiane des boutiques du MÊME type d'emplacement
-# (un local de centre commercial n'a pas la taille d'un local de quartier).
-# La médiane plutôt que la moyenne : elle n'est pas tirée par les grands locaux.
-# Une colonne drapeau garde la trace pour pouvoir exclure ces lignes si besoin.
-# ---------------------------------------------------------------------------
+
+# Surface = 0 m² (B129, B113, B159) : une valeur manquante déguisée.
+# On la remplace par la médiane du même type d'emplacement ; la médiane
+# n'est pas tirée par les grands locaux (cours Analyse exploratoire).
+# Le drapeau surface_imputee permet d'exclure ces lignes si besoin.
+
 titre("6. Surfaces impossibles (0 m²)")
 masque = boutiques["surface_m2"] <= 0
 print(boutiques.loc[masque, ["boutique_id", "emplacement", "surface_m2", "loyer_mensuel_eur", "effectif"]].to_string(index=False))
@@ -190,12 +180,11 @@ boutiques["surface_m2"] = boutiques["surface_m2"].fillna(mediane_par_type)
 print("Après remplacement par la médiane du type d'emplacement :")
 print(boutiques.loc[masque, ["boutique_id", "emplacement", "surface_m2"]].to_string(index=False))
 
-# ---------------------------------------------------------------------------
-# 7. Valeurs manquantes : part_emporter et habitants_1km
-# 3 manquants sur 59 dans chaque colonne. Supprimer ces lignes ferait perdre
-# 6 boutiques sur 59 (10 %), c'est trop pour un si petit échantillon.
-# On remplace par la médiane de la colonne et on garde un drapeau.
-# ---------------------------------------------------------------------------
+
+# Valeurs manquantes (3 dans part_emporter, 3 dans habitants_1km).
+# Supprimer ces lignes ferait perdre 6 boutiques sur 59 : on remplace
+# par la médiane de la colonne et on garde un drapeau.
+
 titre("7. Valeurs manquantes")
 for col in ["part_emporter", "habitants_1km"]:
     manquants = boutiques[col].isna()
@@ -261,6 +250,27 @@ print("Commentaires dans docs/journal_nettoyage.md, section 9.")
 # Contrôle des coordonnées : toutes les boutiques doivent être dans Paris (environ 2,22-2,47 E et 48,81-48,91 N).
 assert boutiques["longitude"].between(2.22, 2.47).all()
 assert boutiques["latitude"].between(48.81, 48.91).all()
+
+
+# Boîtes à moustaches des colonnes numériques après nettoyage, une par colonne
+# car les unités sont différentes. Les points isolés au-dessus (surtout les gares
+# pour le passage et le CA) sont gardés volontairement : « une valeur extrême
+# est une question, pas un déchet » (cours Analyse exploratoire).
+titre("9 bis. Boîtes à moustaches")
+cols_box = num.columns.tolist()
+fig, axes = plt.subplots(2, (len(cols_box) + 1) // 2, figsize=(16, 7))
+for ax, col in zip(axes.flat, cols_box):
+    ax.boxplot(boutiques[col])
+    ax.set_title(col, fontsize=9)
+    ax.set_xticks([])
+for ax in list(axes.flat)[len(cols_box):]:
+    ax.axis("off")  # case vide si le nombre de colonnes est impair
+fig.suptitle("Colonnes numériques après nettoyage (59 boutiques)")
+fig.tight_layout()
+fig.savefig(FIGURES / "nettoyage_boxplots.png", dpi=150)
+plt.close(fig)
+gares = boutiques.loc[boutiques["emplacement"] == "gare", "boutique_id"].tolist()
+print(f"Figure écrite : outputs/figures/nettoyage_boxplots.png (gares gardées : {gares})")
 
 
 # 10. Sauvegarde et tableau qualité avant / après
